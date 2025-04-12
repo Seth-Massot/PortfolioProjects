@@ -1,11 +1,19 @@
+
+/*
+
+Covid 19 Data Exploration
+
+Skills used: Joins, CTE's, Temp Tables, Windows Functions, Aggregate Functions, Creating Views, Converting Data Types
+
+*/
+
 Select *
 From CovidProject..CovidDeaths
 Where continent is not null
 Order by 3,4
 
---Select *
---From CovidProject..CovidVaccinations
---Order by 3,4
+
+---------------------------------------------------------------------
 
 -- Select Data that we are going to be using
 
@@ -15,18 +23,20 @@ From CovidProject..CovidDeaths
 Order by 1,2
 
 
+---------------------------------------------------------------------
+
 -- Looking at Total Cases vs Total Deaths
 -- Shows likelihood of dying if you contract covid in your country
-Alter Table [dbo].[CovidDeaths]
-Alter Column total_cases float;
 
 Select location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 AS DeathPercentage
 From CovidProject..CovidDeaths
---Where Location like '%states%'
+Where Location like '%states%'
 Order by 1,2
 
 
--- Looking at Total Cases vs Population
+---------------------------------------------------------------------
+
+-- Total Cases vs Population
 --Shows what percentage of population has contracted covid
 
 Select location, date, population, total_cases, (total_cases/population)*100 AS InfectionPercentage
@@ -35,7 +45,9 @@ From CovidProject..CovidDeaths
 Order by 1,2
 
 
--- Looking at Countries with highest Infection Rate compared to population
+---------------------------------------------------------------------
+
+-- Countries with highest Infection Rate compared to population
 
 Select location, population, MAX(total_cases) AS HighestInfectionCount, MAX((total_cases/population))*100 AS InfectionPercentage
 From CovidProject..CovidDeaths
@@ -43,6 +55,8 @@ From CovidProject..CovidDeaths
 Group by location, population
 Order by InfectionPercentage desc
 
+
+---------------------------------------------------------------------
 
 -- Showing Countries with the highest Death Count per Population
 
@@ -54,17 +68,10 @@ Group by location
 Order by TotalDeathCount desc
 
 
--- LET'S BREAK IT DOWN BY CONTINENT
+---------------------------------------------------------------------
 
+-- BREAK IT DOWN BY CONTINENT
 -- Showing continents with the highest death count per population
-
-
---Select location, MAX(total_deaths) as TotalDeathCount
---From CovidProject..CovidDeaths
---Where continent is null
---Group by location
---Order by TotalDeathCount desc
-
 
 Select continent, MAX(total_deaths) as TotalDeathCount
 From CovidProject..CovidDeaths
@@ -72,6 +79,8 @@ Where continent is not null
 Group by continent
 Order by TotalDeathCount desc
 
+
+---------------------------------------------------------------------
 
 -- GLOBAL NUMBERS
 
@@ -89,8 +98,10 @@ Where continent is not null
 Order by 1,2
 
 
+---------------------------------------------------------------------
 
--- Looking at Total Population vs Vaccinations
+-- Total Population vs Vaccinations
+-- Shows Percentage of Population that has received at least one Covid Vaccine
 
 Select Deaths.continent, Deaths.location, Deaths.date, Deaths.population, Vax.new_vaccinations
 , SUM(vax.new_vaccinations) OVER (Partition by deaths.location Order by deaths.location, deaths.date) as RollingPeopleVaccinated
@@ -102,7 +113,9 @@ Where Deaths.continent is not null
 Order by 2,3
 
 
--- Use CTE
+---------------------------------------------------------------------
+
+-- Using CTE to perform Calculation on Partition By in previous Query
 
 With PopvsVax (Continent, Location, Date, Population, new_vaccinations, RollingPeopleVaccinated)
 as 
@@ -121,7 +134,9 @@ From PopvsVax
 Order by 2,3
 
 
--- Temp Table
+---------------------------------------------------------------------
+
+-- Using Temp Table to perform Calculation on Partition By in previous Query
 
 Drop Table if exists #PercentPopulationVaccinated
 
@@ -148,6 +163,8 @@ Select *, (RollingPeopleVaccinated/Population)*100
 From #PercentPopulationVaccinated
 Order by 2,3
 
+
+---------------------------------------------------------------------
 
 -- Creating View to store data for later visualizations
 
